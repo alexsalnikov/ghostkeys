@@ -13,7 +13,7 @@
     "start": "npm run build && electron .",
     "desktop": "electron .",
     "test": "playwright test",
-    "package": "npm run build && electron-builder --linux dir"
+    "package": "npm run build && electron-builder --dir"
   },
   "dependencies": {
     "@codemirror/commands": "^6.0.0",
