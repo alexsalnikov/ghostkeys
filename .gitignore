@@ -1,0 +1,21 @@
+node_modules/
+dist/
+release/
+test-results/
+playwright-report/
+*.tsbuildinfo
+*.log
+
+# Local plans, captures, and launchers
+plan.md
+screenshots/
+GhostKeys.desktop
+
+# Local environment and tooling
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+.agents/
+.codex/

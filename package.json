@@ -1,0 +1,59 @@
+{
+  "name": "ghostkeys",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Offline keyboard practice for Vim and tmux.",
+  "author": "GhostKeys",
+  "license": "MIT",
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc -b && vite build",
+    "start": "npm run build && electron .",
+    "desktop": "electron .",
+    "test": "playwright test",
+    "package": "npm run build && electron-builder --linux dir"
+  },
+  "dependencies": {
+    "@codemirror/commands": "^6.0.0",
+    "@codemirror/lang-html": "^6.4.12",
+    "@codemirror/lang-javascript": "^6.0.0",
+    "@codemirror/language": "^6.0.0",
+    "@codemirror/state": "^6.0.0",
+    "@codemirror/view": "^6.0.0",
+    "@lezer/highlight": "^1.2.0",
+    "@replit/codemirror-vim": "^6.3.0",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "electron": "^44.2.0",
+    "electron-builder": "^26.0.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0"
+  },
+  "build": {
+    "appId": "local.ghostkeys.trainer",
+    "productName": "GhostKeys",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "linux": {
+      "category": "Education",
+      "executableName": "ghostkeys",
+      "icon": "public/ghost.png"
+    }
+  }
+}
