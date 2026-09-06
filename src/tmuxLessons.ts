@@ -3,6 +3,38 @@ export interface TmuxExercise {initial:TmuxState;task:string;steps:string[];goal
 export interface TmuxLesson {id:string;group:string;title:string;description:string;tip:string;make(variation:number):TmuxExercise}
 const names=['ghost','wisp','phantom','specter'];
 export const tmuxGroups=['Sessions','Windows','Panes','Help & history'];
+export const tmuxGroupPurpose:Record<string,string>={
+  Sessions:'project containers',
+  Windows:'full-screen tabs',
+  Panes:'visible splits',
+  'Help & history':'inspect and discover',
+};
+export const tmuxWhy:Record<string,string>={
+  'new-session':'Use one session per project or long-running job so its terminal work can be detached and resumed together.',
+  detach:'Leave the terminal without stopping the programs inside the session.',
+  'list-sessions':'Find resumable work before deciding whether to create another session.',
+  attach:'Continue the same programs and layout after opening another terminal or reconnecting.',
+  'reattach-cycle':'Build the recovery routine that makes tmux useful after a terminal or SSH interruption.',
+  'new-or-attach':'Use one reliable command whether the named session already exists or not.',
+  'rename-session':'Recognize projects quickly when several sessions are running.',
+  'switch-session':'Move between separate projects without ending either one.',
+  'kill-session':'End an entire finished workspace and all programs it contains.',
+  'new-window':'Create another full-terminal workspace inside this session when a task needs more room than a split pane.',
+  'next-window':'Use windows like tabs when each task needs the whole terminal. n changes which window fills the screen; it does not move between split panes.',
+  'previous-window':'Return to the preceding full-terminal window while programs in the other windows keep running.',
+  'number-window':'Jump straight to a known full-terminal window instead of stepping through the list.',
+  'rename-window':'Make the status-line window list describe each full-screen task.',
+  'close-window':'Remove one finished full-terminal workspace without ending the rest of the session.',
+  'split-right':'Use panes when two programs need to stay visible at once, such as code beside logs. Both panes belong to the current window.',
+  'split-down':'Stack two visible terminals inside the current window when vertical space suits the work.',
+  'focus-pane':'Choose which visible pane receives your typing without changing windows.',
+  'cycle-pane':'Move through visible panes quickly when direction does not matter.',
+  'zoom-pane':'Temporarily give one pane the full window, then restore the split layout.',
+  'close-pane':'End one visible terminal while preserving the other panes and windows.',
+  'key-help':'Discover the bindings available in the current tmux configuration.',
+  'scroll-history':'Read output that has scrolled out of view without disturbing the running program.',
+  'command-prompt':'Run tmux management commands without detaching to the outside shell.',
+};
 export const expandTmux=(steps:string[])=>steps.flatMap(step=>step.startsWith('type:')?[...step.slice(5)]:[step]);
 const seen=(s:TmuxState,event:string)=>s.events.includes(event);
 const withWindows=(name:string)=>{const s=makeState(name);s.sessions[0].windows=[makeWindow(0,'editor'),makeWindow(1,'logs'),makeWindow(2,'shell')];return s;};
@@ -18,7 +50,7 @@ export const tmuxLessons:TmuxLesson[]=[
   {id:'switch-session',group:'Sessions',title:'Visit the pumpkin next door',description:'Ctrl+b then s opens a session chooser inside tmux. Move to another session and press Enter to switch this client to it.',tip:'The exercise shows two session rows. Down selects the second; Enter attaches to it. The first session stays alive.',make(v){const initial=makeState(names[v]);initial.sessions.push(makeSession('pumpkin'));return {initial,task:'Switch to pumpkin through the session chooser, keeping both sessions.',steps:['Ctrl+b','s','ArrowDown','Enter'],goal:s=>seen(s,'switch-session')&&s.attached==='pumpkin'&&s.sessions.length===2};}},
   {id:'kill-session',group:'Sessions',title:'Close a finished haunt deliberately',description:'tmux kill-session -t NAME ends that session and all its programs. This is for finished work; detach when you want to return later.',tip:'This exercise only removes a simulated session. Target its name carefully; the other session must remain.',make(v){const name=names[v],initial=makeState(name,false);initial.sessions.push(makeSession('pumpkin'));return {initial,task:`End the finished ${name} session, keeping pumpkin.`,steps:[`type:tmux kill-session -t ${name}`,'Enter'],goal:s=>seen(s,'kill-session')&&s.sessions.length===1&&s.sessions[0].name==='pumpkin'};}},
   {id:'new-window',group:'Windows',title:'Another room in the same haunt',description:'A window is like a terminal tab within a session. Ctrl+b then c creates and selects a new window.',tip:'Your old window keeps running. The status bar shows both windows; * marks the current one.',make(v){return {initial:makeState(names[v]),task:'Create a second window in this session.',steps:['Ctrl+b','c'],goal:s=>activeSession(s)?.windows.length===2&&activeSession(s)?.active===1};}},
-  ...(['n','p'] as const).map((key):TmuxLesson=>({id:key==='n'?'next-window':'previous-window',group:'Windows',title:key==='n'?'Follow the next lantern':'Return to the previous lantern',description:`Ctrl+b then ${key} selects the ${key==='n'?'next':'previous'} window. Navigation wraps around the window list.`,tip:'These keys switch tmux windows after the prefix. Without the prefix they go to the program in your pane.',make(v){const initial=withWindows(names[v]);initial.sessions[0].active=1;return {initial,task:`Switch from logs to ${key==='n'?'shell':'editor'}.`,steps:['Ctrl+b',key],goal:s=>seen(s,'switch-window')&&activeSession(s)?.active===(key==='n'?2:0)};}})),
+  ...(['n','p'] as const).map((key):TmuxLesson=>({id:key==='n'?'next-window':'previous-window',group:'Windows',title:key==='n'?'Follow the next lantern':'Return to the previous lantern',description:`Ctrl+b then ${key} selects the ${key==='n'?'next':'previous'} full-screen window, like changing tabs. Navigation wraps around the window list.`,tip:'These keys switch tmux windows, not panes. To focus a visible split pane, use Ctrl+b then an arrow key or o.',make(v){const initial=withWindows(names[v]);initial.sessions[0].active=1;return {initial,task:`Switch from logs to ${key==='n'?'shell':'editor'}.`,steps:['Ctrl+b',key],goal:s=>seen(s,'switch-window')&&activeSession(s)?.active===(key==='n'?2:0)};}})),
   {id:'number-window',group:'Windows',title:'Go straight to room zero',description:'Ctrl+b then a digit selects that window index directly. Default tmux starts numbering windows at zero.',tip:'Use the number in the status bar. Custom configurations can change the base index; this course uses tmux defaults.',make(v){const initial=withWindows(names[v]);initial.sessions[0].active=2;return {initial,task:'Select window 0, editor, directly.',steps:['Ctrl+b','0'],goal:s=>seen(s,'switch-window')&&activeSession(s)?.active===0};}},
   {id:'rename-window',group:'Windows',title:'A label for your lantern logs',description:'Ctrl+b then comma renames the current window. Use names that describe the work inside.',tip:'Clear the existing name with Ctrl+u, type the new label, then Enter. Session rename uses $ instead of comma.',make(v){const target=names[v]+'-logs';return {initial:makeState(names[v]),task:`Rename this window to ${target}.`,steps:['Ctrl+b',',','Ctrl+u',`type:${target}`,'Enter'],goal:s=>seen(s,'rename-window')&&activeWindow(s)?.name===target};}},
   {id:'close-window',group:'Windows',title:'Finish a room, keep the house',description:'Ctrl+b then & asks to close the current window and all its panes. Confirm with y, or cancel with n.',tip:'This is stronger than detaching. The exercise keeps two other windows alive so you can see the difference.',make(v){const initial=withWindows(names[v]);initial.sessions[0].active=1;return {initial,task:'Close the finished logs window, keeping editor and shell.',steps:['Ctrl+b','&','y'],goal:s=>seen(s,'close-window')&&activeSession(s)?.windows.length===2&&!activeSession(s)?.windows.some(w=>w.id===1)};}},

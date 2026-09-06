@@ -1,6 +1,6 @@
 import { expect, type Page } from '@playwright/test';
 import { test } from './fixture';
-import { expandTmux, tmuxLessons } from '../src/tmuxLessons';
+import { expandTmux, tmuxLessons, tmuxWhy } from '../src/tmuxLessons';
 import { activeWindow, makeState, tmuxKey } from '../src/tmuxModel';
 import { emptyProgress, emptyResult, storageKey } from '../src/progress';
 const tmuxKeyName='ghostkeys.tmux.v1';
@@ -65,6 +65,18 @@ test('tmux split direction, zoom, and close cancellation preserve the right pane
 test('tmux input is simulated; shell metacharacters cannot run real commands',()=>{
   const state=expandTmux(['type:touch /tmp/ghostkeys-must-not-exist; tmux new -s boo','Enter']).reduce(tmuxKey,makeState('ghost',false));
   expect(state.attached).toBeNull();expect(state.sessions.map(s=>s.name)).toEqual(['ghost']);expect(state.events).toEqual(['unsupported']);
+});
+
+test('tmux explains when to use windows and when to use panes',async({page})=>{
+  expect(tmuxWhy['next-window']).toContain('does not move between split panes');
+  expect(tmuxWhy['split-right']).toContain('stay visible at once');
+  await choose(page,'next-window');
+  await expect(page.locator('.tmux-why')).toContainText('does not move between split panes');
+  await page.getByRole('button',{name:'Why tmux?',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Two ways to multitask'})).toBeVisible();
+  await expect(page.getByText('Only one window fills the terminal at a time. Every pane in that window remains visible.')).toBeVisible();
+  await expect(page.getByText('Switch full-screen windows',{exact:true})).toBeVisible();
+  await expect(page.getByText('Focus another visible pane',{exact:true})).toBeVisible();
 });
 
 test('paths keep progress separate and restore the last selected path on reload',async({page})=>{
