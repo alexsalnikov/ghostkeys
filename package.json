@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "Offline keyboard practice for Vim and tmux.",
+  "desktopName": "GhostKeys",
   "author": "GhostKeys",
   "license": "MIT",
   "type": "module",
@@ -13,7 +14,8 @@
     "start": "npm run build && electron .",
     "desktop": "electron .",
     "test": "playwright test",
-    "package": "npm run build && electron-builder --dir"
+    "package": "npm run build && electron-builder --dir",
+    "dist": "npm run build && electron-builder"
   },
   "dependencies": {
     "@codemirror/commands": "^6.0.0",
@@ -53,7 +55,27 @@
     "linux": {
       "category": "Education",
       "executableName": "ghostkeys",
-      "icon": "public/ghost.png"
+      "icon": "public/ghost.png",
+      "syncDesktopName": true,
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "win": {
+      "icon": "public/ghost.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
     }
   }
 }

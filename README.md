@@ -31,6 +31,16 @@ npm run package   # Create an unpacked build for the current OS
 
 Packaged output is written under `release/` in an operating-system-specific folder.
 
+## Precompiled releases
+
+Version tags publish precompiled x64 downloads to GitHub Releases:
+
+- Linux: AppImage
+- Windows: NSIS `.exe` installer
+
+The release workflow intentionally does not build or publish a macOS package. The tag
+should match the version in `package.json`, for example `v1.0.0`.
+
 ## Privacy and scope
 
 Everything runs locally. Progress and scratchpad data stay in the operating system's application-data directory.
