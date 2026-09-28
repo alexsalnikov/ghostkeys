@@ -52,14 +52,13 @@ test('existing learners keep their current lesson and can revisit the introducti
   await expect(page.getByText('Repetition 3 of 4', { exact: true })).toBeVisible();
 });
 
-test('training controls fit short desktop windows in guidance, feedback, and success states', async ({ page }) => {
-  test.setTimeout(60000);
-  const data = emptyProgress();data.introductionComplete = true;
-  await page.addInitScript(({key,data}) => localStorage.setItem(key, JSON.stringify(data)), {key:storageKey,data});
-  await page.goto('http://127.0.0.1:5173');
-  for (const size of [{width:880,height:650}, {width:900,height:720}, {width:1366,height:768}, {width:1320,height:900}]) {
+for (const size of [{width:880,height:650}, {width:900,height:720}, {width:1366,height:768}, {width:1320,height:900}]) {
+  test(`training controls fit ${size.width}×${size.height} in guidance, feedback, and success states`, async ({ page }) => {
+    test.setTimeout(60000);
+    const data = emptyProgress();data.introductionComplete = true;
+    await page.addInitScript(({key,data}) => localStorage.setItem(key, JSON.stringify(data)), {key:storageKey,data});
     await page.setViewportSize(size);
-    await page.reload();
+    await page.goto('http://127.0.0.1:5173');
     for (const lesson of lessons) {
       // Exercise the full course, including long descriptions and key sequences.
       await expect(page.getByRole('heading', {name:lesson.title+'.',exact:true})).toBeVisible();
@@ -87,10 +86,9 @@ test('training controls fit short desktop windows in guidance, feedback, and suc
     await expect(page.getByTestId('success')).toBeVisible();
     expect(await page.evaluate(()=>{const el=document.querySelector('.main-content')!;return el.scrollHeight<=el.clientHeight+1;})).toBe(true);
     await page.getByRole('button',{name:'Reset exercise'}).click();
-  }
-  await page.setViewportSize({width:1366,height:768});
-  await page.screenshot({path:'test-results/compact-training.png'});
-});
+    if (size.width===1366) await page.screenshot({path:'test-results/compact-training.png'});
+  });
+}
 
 test('every introduction topic fits the minimum desktop window', async ({ page }) => {
   await page.setViewportSize({width:880,height:650});
